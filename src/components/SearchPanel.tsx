@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
+import { api } from "@/lib/api";
 
 interface SearchPanelProps {
     projectId: string;
@@ -32,6 +33,7 @@ export default function SearchPanel({ projectId, onSearch }: SearchPanelProps) {
 
     const { data: stats } = useQuery<ProjectStats>({
         queryKey: ["/api/projects", projectId, "stats"],
+        queryFn: api.getProjects,
         enabled: !!projectId,
     });
 
