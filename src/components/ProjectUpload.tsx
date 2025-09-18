@@ -62,13 +62,13 @@ export default function ProjectUpload({ onSuccess }: ProjectUploadProps) {
             path: projectPath || `/projects/${projectName.toLowerCase().replace(/\s+/g, '-')}`,
             language,
             statistics: {
-                totalFiles: 0,
+                totalFiles: files?.length || 0,
                 totalLines: 0,
                 totalFunctions: 0,
                 totalStructs: 0,
                 elementCounts: {},
-                packageCounts: {}
-            }
+                packageCounts: {},
+            },
         });
     };
 
@@ -77,32 +77,27 @@ export default function ProjectUpload({ onSuccess }: ProjectUploadProps) {
         setFiles(selectedFiles);
 
         if (selectedFiles && selectedFiles.length > 0) {
-            const extensions = Array.from(selectedFiles).map(file =>
-                file.name.split('.').pop()?.toLowerCase()
+            const exts = Array.from(selectedFiles).map((f) =>
+                f.name.split(".").pop()?.toLowerCase()
             );
-
-            if (extensions.some(ext => ext === 'go')) {
-                setLanguage('go');
-            } else if (extensions.some(ext => ['ts', 'tsx', 'js', 'jsx'].includes(ext || ''))) {
-                setLanguage('typescript');
-            } else if (extensions.some(ext => ext === 'py')) {
-                setLanguage('python');
+            if (exts.some((ext) => ext === "go")) {
+                setLanguage("go");
+            }
+            else if (exts.some((ext) => ["ts", "tsx", "js", "jsx"].includes(ext || ""))) {
+                setLanguage("typescript");
+            }
+            else if (exts.some((ext) => ext === "py")) {
+                setLanguage("python");
             }
         }
     };
 
     return (
-        <div className="space-y-6">
-            <div>
-                <h2 className="text-xl font-semibold mb-2">Upload Project</h2>
-                <p className="text-sm text-muted-foreground">
-                    Create a new project for code analysis and semantic search
-                </p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="max-h-[80vh] overflow-y-auto p-4">
+            <h2 className="text-xl font-semibold mb-4">Upload Project</h2>
+            <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                    <Label htmlFor="project-name">Project Name *</Label>
+                    <Label htmlFor="project-name">Project Name <span className="text-red-700">*</span></Label>
                     <Input
                         id="project-name"
                         value={projectName}
@@ -143,18 +138,18 @@ export default function ProjectUpload({ onSuccess }: ProjectUploadProps) {
                 </div>
 
                 <div>
-                    <Label htmlFor="files">Project Files</Label>
+                    <Label htmlFor="files">Project Folder</Label>
                     <Input
                         ref={fileInputRef}
                         id="files"
                         type="file"
-                        multiple
                         onChange={handleFileChange}
                         className="cursor-pointer"
                         data-testid="input-files"
+                        {...({ webkitdirectory: "", directory: "" } as any)}
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                        Select a folder containing your project files. The system will analyze supported file types.
+                        Select a folder containing your project files. All files and subfolders will be included.
                     </p>
                 </div>
 
@@ -176,27 +171,29 @@ export default function ProjectUpload({ onSuccess }: ProjectUploadProps) {
                         <p className="text-sm text-muted-foreground">
                             {files.length} files selected
                         </p>
-                        <div className="mt-2 max-h-32 overflow-y-auto">
-                            <div className="text-xs space-y-1">
-                                {Array.from(files).slice(0, 10).map((file, index) => (
-                                    <div key={index} className="flex justify-between">
-                                        <span className="truncate">{file.name}</span>
-                                        <span className="text-muted-foreground">
+                        <div className="mt-2 max-h-40 overflow-y-auto text-xs space-y-1">
+                            {Array.from(files)
+                                .slice(0, 20)
+                                .map((file, i) => (
+                                    <div key={i} className="flex justify-between">
+                                        <span className="truncate">
+                                            {(file as any).webkitRelativePath || file.name}
+                                        </span>
+                                        <span className="text-muted-foreground ml-2 flex-shrink-0">
                                             {(file.size / 1024).toFixed(1)}KB
                                         </span>
                                     </div>
                                 ))}
-                                {files.length > 10 && (
-                                    <div className="text-muted-foreground">
-                                        ... and {files.length - 10} more files
-                                    </div>
-                                )}
-                            </div>
+                            {files.length > 20 && (
+                                <div className="text-muted-foreground">
+                                    ... and {files.length - 20} more files
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
 
-                <div className="flex justify-end space-x-2 pt-4">
+                <div className="flex justify-end space-x-2 pt-4 border-t">
                     <Button
                         type="button"
                         variant="outline"
@@ -208,10 +205,16 @@ export default function ProjectUpload({ onSuccess }: ProjectUploadProps) {
                     </Button>
                     <Button
                         type="submit"
-                        disabled={createProjectMutation.isPending || !projectName || !language}
+                        disabled={
+                            createProjectMutation.isPending ||
+                            !projectName ||
+                            !language
+                        }
                         data-testid="button-create"
                     >
-                        {createProjectMutation.isPending ? "Creating..." : "Create Project"}
+                        {createProjectMutation.isPending
+                            ? "Creating..."
+                            : "Create Project"}
                     </Button>
                 </div>
             </form>

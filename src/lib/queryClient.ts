@@ -13,7 +13,7 @@ export async function apiRequest(
     url: string,
     data?: unknown | undefined,
 ): Promise<AxiosResponse> {
-    const res = await axios(url, {
+    const res = await axios(`${process.env.NEXT_PUBLIC_BACKEND_URL!}${url}`, {
         method,
         headers: data ? { "Content-Type": "application/json" } : {},
         data: data ? JSON.stringify(data) : undefined,
@@ -30,7 +30,7 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T | null> =
     ({ on401: unauthorizedBehavior }) =>
         async ({ queryKey }) => {
-            const res = await axios(queryKey.join("/") as string, {
+            const res = await axios(`${process.env.NEXT_PUBLIC_BACKEND_URL!}${queryKey.join("/")}`, {
                 withCredentials: true,
             });
 
